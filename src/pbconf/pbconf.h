@@ -23,7 +23,7 @@ public:
     // Returns True if success; otherwise False.
     bool Load(::google::protobuf::Message& msg);
 
-    std::string error_message() const {
+    std::string ErrorMessage() const {
         return _error_msg;
     }
 private:

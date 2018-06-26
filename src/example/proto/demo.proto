@@ -1,0 +1,5 @@
+package demo;
+
+message ConfMessage {
+    required int32 nthread = 1;
+}

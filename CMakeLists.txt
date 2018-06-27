@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 2.8.10)
 project(pbconf C CXX)
 
+set(BOOST_INCLUDE "/usr/local/Cellar/boost\@1.60/1.60.0/include/")
+set(BOOST_LIB "/usr/local/Cellar/boost\@1.60/1.60.0/lib/")
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${BOOST_INCLUDE}")
+SET(CMAKE_LDPATH "${CMAKE_LDPATH} -L${BOOST_LIB}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
 
 include(FindProtobuf)
@@ -77,4 +82,11 @@ add_executable(demo ${SOURCES})
 target_link_libraries(demo pbconf)
 target_link_libraries(demo protobuf)
 target_link_libraries(demo brpc)
+target_link_libraries(demo yaml-cpp)
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/example/conf/
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/output/conf/
+    FILES_MATCHING 
+    PATTERN "*"
+    )
 # demo end

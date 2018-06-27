@@ -17,8 +17,8 @@ namespace pbconf {
 
 bool PbConf::Load(::google::protobuf::Message& msg) {
     std::vector<std::string> ordered_filenames = {
-        "application.yml", "application.json", "application.hocon",
-        "application.properties"
+        "conf/application.yml", "conf/application.json", "conf/application.hocon",
+        "conf/application.properties"
     };
 
     auto file_exists = [](const std::string& filename) {

@@ -1,6 +1,9 @@
 #ifndef YAML_CONF_H
 #define YAML_CONF_H
 
+#include <google/protobuf/message.h>
+#include <string>
+
 namespace pbconf {
 
 class YamlConf final {

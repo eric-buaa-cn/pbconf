@@ -1,5 +1,8 @@
 package demo;
 
 message ConfMessage {
-    required int32 nthread = 1;
+    required int32 i32 = 1;
+    required int64 i64 = 2;
+    required uint32 ui32 = 3;
+    required uint64 ui64 = 4;
 }

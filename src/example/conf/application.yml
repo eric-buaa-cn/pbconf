@@ -19,3 +19,11 @@ fs: [3.14, 3.14, 3.14]
 ds: [3.1415926, 3.1415926, 3.1415926]
 gs: [MAN, WOMEN, 1, 2]
 ss: ["hello", "world"]
+
+user: {age: 23, name: "Jack"}
+
+classmates:
+    - age: 21
+      name: "Li Li"
+    - age: 22
+      name: "Tom"

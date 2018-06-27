@@ -82,5 +82,14 @@ int main() {
         std::cout << " " << msg.ss(i);
     }
     std::cout << std::endl;
+
+    std::cout << "user: .name=" << msg.user().name()
+        << " .age=" << msg.user().age() << std::endl;
+
+    std::cout << "classmates:" << std::endl;
+    for (int i = 0; i < msg.classmates_size(); ++i) {
+        std::cout << " .name=" << msg.classmates(i).name()
+            << " .age=" << msg.classmates(i).age() << std::endl;
+    }
     return 0;
 }

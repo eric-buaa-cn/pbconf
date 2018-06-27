@@ -653,8 +653,6 @@ inline bool OnNodeFor<enum DummyEnum>(
         const FieldDescriptor* field,
         Message& parent_msg,
         string& err_msg) {
-    const Reflection* reflection = parent_msg.GetReflection();
-
     if (field->is_repeated()) {
         return OnNodeForRepeated<enum DummyEnum>(node, field, parent_msg, err_msg);
     } else {
@@ -663,7 +661,37 @@ inline bool OnNodeFor<enum DummyEnum>(
 }
 // End enum
 
+// Begin message
 class DummyClass {};
+
+template <>
+inline bool OnNodeForSingle<DummyClass>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    Message& child_msg = *(reflection->MutableMessage(&parent_msg, field));
+    return OnMap(node, child_msg, err_msg);
+}
+
+template <>
+inline bool OnNodeForRepeated<DummyClass>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    for (auto citr = node.begin(); citr != node.end(); ++citr) {
+        Message& child_msg = *(reflection->AddMessage(&parent_msg, field));
+        if (!OnMap(*citr, child_msg, err_msg)) {
+            return false;
+        }
+    }
+    return true;
+}
 
 template <>
 inline bool OnNodeFor<DummyClass>(
@@ -671,8 +699,13 @@ inline bool OnNodeFor<DummyClass>(
         const FieldDescriptor* field,
         Message& parent_msg,
         string& err_msg) {
-    return true;
+    if (field->is_repeated()) {
+        return OnNodeForRepeated<DummyClass>(node, field, parent_msg, err_msg);
+    } else {
+        return OnNodeForSingle<DummyClass>(node, field, parent_msg, err_msg);
+    }
 }
+// End message
 
 static bool OnNode(
         const Node& node,
@@ -711,6 +744,9 @@ static bool OnNode(
     }
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_STRING) {
         return OnNodeFor<string>(node, field, parent_msg, err_msg);
+    }
+    if (field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
+        return OnNodeFor<DummyClass>(node, field, parent_msg, err_msg);
     }
 
     return false;

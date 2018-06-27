@@ -27,4 +27,12 @@ message ConfMessage {
     repeated double ds = 18;
     repeated Gender gs = 19;
     repeated string ss = 20;
+
+    message User {
+        required int32 age = 1;
+        optional string name = 2;
+    }
+
+    required User user = 21;
+    repeated User classmates = 22;
 }

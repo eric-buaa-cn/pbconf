@@ -4,3 +4,5 @@ i64: 64
 ui64: 64
 btrue: true
 bfalse: false
+f: 3.14
+d: 3.1415926

@@ -395,6 +395,130 @@ inline bool OnNodeFor<bool>(
 }
 // End bool
 
+// Begin float
+template <>
+inline bool get<float>(const Node& node, float& value) {
+    try {
+        value = node.as<float>();
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+template <>
+inline bool OnNodeForSingle<float>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    float value{0.};
+    if (!get(node, value)) {
+        butil::StringAppendF(&err_msg, "Expect float value at:%s",
+                field->full_name().c_str());
+        return false;
+    }
+    const Reflection* reflection = parent_msg.GetReflection();
+    reflection->SetFloat(&parent_msg, field, value);
+    return true;
+}
+
+template <>
+inline bool OnNodeForRepeated<float>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    float value{0.};
+    for (auto citr = node.begin(); citr != node.end(); ++citr) {
+        if (!get(node, value)) {
+            return false;
+        }
+        reflection->AddFloat(&parent_msg, field, value);
+    }
+    return true;
+}
+
+template <>
+inline bool OnNodeFor<float>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    if (field->is_repeated()) {
+        return OnNodeForRepeated<float>(node, field, parent_msg, err_msg);
+    } else {
+        return OnNodeForSingle<float>(node, field, parent_msg, err_msg);
+    }
+}
+// End float
+
+// Begin double
+template <>
+inline bool get<double>(const Node& node, double& value) {
+    try {
+        value = node.as<double>();
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+template <>
+inline bool OnNodeForSingle<double>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    double value{0.};
+    if (!get(node, value)) {
+        butil::StringAppendF(&err_msg, "Expect double value at:%s",
+                field->full_name().c_str());
+        return false;
+    }
+    const Reflection* reflection = parent_msg.GetReflection();
+    reflection->SetDouble(&parent_msg, field, value);
+    return true;
+}
+
+template <>
+inline bool OnNodeForRepeated<double>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    double value{0.};
+    for (auto citr = node.begin(); citr != node.end(); ++citr) {
+        if (!get(node, value)) {
+            return false;
+        }
+        reflection->AddDouble(&parent_msg, field, value);
+    }
+    return true;
+}
+
+template <>
+inline bool OnNodeFor<double>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    if (field->is_repeated()) {
+        return OnNodeForRepeated<double>(node, field, parent_msg, err_msg);
+    } else {
+        return OnNodeForSingle<double>(node, field, parent_msg, err_msg);
+    }
+}
+// End double
+
 class DummyMessage {};
 
 template <>
@@ -431,6 +555,12 @@ static bool OnNode(
     }
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_BOOL) {
         return OnNodeFor<bool>(node, field, parent_msg, err_msg);
+    }
+    if (field->cpp_type() == FieldDescriptor::CPPTYPE_FLOAT) {
+        return OnNodeFor<float>(node, field, parent_msg, err_msg);
+    }
+    if (field->cpp_type() == FieldDescriptor::CPPTYPE_DOUBLE) {
+        return OnNodeFor<double>(node, field, parent_msg, err_msg);
     }
 
     return false;

@@ -7,4 +7,6 @@ message ConfMessage {
     required uint64 ui64 = 4;
     required bool btrue = 5;
     required bool bfalse = 6;
+    required float f = 7;
+    required double d = 8;
 }

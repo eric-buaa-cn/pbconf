@@ -9,7 +9,8 @@ public:
             const std::string& filename,
             ::google::protobuf::Message& msg,
             std::string& err_msg) {
-        return true;
+        err_msg = "Have no implementation yet";
+        return false;
     }
 };
 

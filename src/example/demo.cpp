@@ -22,5 +22,65 @@ int main() {
     std::cout << "double=" << msg.d() << std::endl;
     std::cout << "gender=" << demo::Gender_Name(msg.g()) << std::endl;
     std::cout << "string=" << msg.s() << std::endl;
+
+    std::cout << "i32s:";
+    for (int i = 0; i < msg.i32s_size(); ++i) {
+        std::cout << " " << msg.i32s(i);
+    }
+    std::cout << std::endl;
+
+    std::cout << "i64s:";
+    for (int i = 0; i < msg.i64s_size(); ++i) {
+        std::cout << " " << msg.i64s(i);
+    }
+    std::cout << std::endl;
+
+    std::cout << "ui32s:";
+    for (int i = 0; i < msg.ui32s_size(); ++i) {
+        std::cout << " " << msg.ui32s(i);
+    }
+    std::cout << std::endl;
+
+    std::cout << "ui64s:";
+    for (int i = 0; i < msg.ui64s_size(); ++i) {
+        std::cout << " " << msg.ui64s(i);
+    }
+    std::cout << std::endl;
+
+    std::cout << "btrues:";
+    for (int i = 0; i < msg.btrues_size(); ++i) {
+        std::cout << " " << msg.btrues(i);
+    }
+    std::cout << std::endl;
+
+    std::cout << "bfalses:";
+    for (int i = 0; i < msg.bfalses_size(); ++i) {
+        std::cout << " " << msg.bfalses(i);
+    }
+    std::cout << std::endl;
+
+    std::cout << "floats:";
+    for (int i = 0; i < msg.fs_size(); ++i) {
+        std::cout << " " << msg.fs(i);
+    }
+    std::cout << std::endl;
+
+    std::cout << "doubles:";
+    for (int i = 0; i < msg.ds_size(); ++i) {
+        std::cout << " " << msg.ds(i);
+    }
+    std::cout << std::endl;
+
+    std::cout << "genders:";
+    for (int i = 0; i < msg.gs_size(); ++i) {
+        std::cout << " " << msg.gs(i);
+    }
+    std::cout << std::endl;
+
+    std::cout << "strings:";
+    for (int i = 0; i < msg.ss_size(); ++i) {
+        std::cout << " " << msg.ss(i);
+    }
+    std::cout << std::endl;
     return 0;
 }

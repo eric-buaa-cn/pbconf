@@ -8,3 +8,14 @@ f: 3.14
 d: 3.1415926
 g: MAN
 s: "Jack John's"
+
+i32s: [32, 32, 32]
+ui32s: [32, 32, 32]
+i64s: [64, 64, 64]
+ui64s: [64, 64, 64]
+btrues: [true, TRUE, True, on, ON, On, y, Y, yes, YES, Yes]
+bfalses: [false, FALSE, False, off, Off, Off, n, N, no, NO, No]
+fs: [3.14, 3.14, 3.14]
+ds: [3.1415926, 3.1415926, 3.1415926]
+gs: [MAN, WOMEN, 1, 2]
+ss: ["hello", "world"]

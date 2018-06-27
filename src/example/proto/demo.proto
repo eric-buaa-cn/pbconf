@@ -16,4 +16,15 @@ message ConfMessage {
     required double d = 8;
     required Gender g = 9 [default=WOMEN];
     required string s = 10;
+
+    repeated int32 i32s = 11;
+    repeated int64 i64s = 12;
+    repeated uint32 ui32s = 13;
+    repeated uint64 ui64s = 14;
+    repeated bool btrues = 15;
+    repeated bool bfalses = 16;
+    repeated float fs = 17;
+    repeated double ds = 18;
+    repeated Gender gs = 19;
+    repeated string ss = 20;
 }

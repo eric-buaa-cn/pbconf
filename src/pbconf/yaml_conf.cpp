@@ -9,6 +9,7 @@
 namespace pbconf {
 
 using Descriptor = ::google::protobuf::Descriptor;
+using EnumValueDescriptor = ::google::protobuf::EnumValueDescriptor;
 using FieldDescriptor = ::google::protobuf::FieldDescriptor;
 using Message = ::google::protobuf::Message;
 using Node = YAML::Node;
@@ -129,7 +130,7 @@ inline bool OnNodeForRepeated<int32_t>(
 
     int32_t value{0};
     for (auto citr = node.begin(); citr != node.end(); ++citr) {
-        if (!get(node, value)) {
+        if (!get(*citr, value)) {
             return false;
         }
         reflection->AddInt32(&parent_msg, field, value);
@@ -189,7 +190,7 @@ inline bool OnNodeForRepeated<uint32_t>(
 
     uint32_t value{0};
     for (auto citr = node.begin(); citr != node.end(); ++citr) {
-        if (!get(node, value)) {
+        if (!get(*citr, value)) {
             return false;
         }
         reflection->AddUInt32(&parent_msg, field, value);
@@ -249,7 +250,7 @@ inline bool OnNodeForRepeated<int64_t>(
 
     int64_t value{0};
     for (auto citr = node.begin(); citr != node.end(); ++citr) {
-        if (!get(node, value)) {
+        if (!get(*citr, value)) {
             return false;
         }
         reflection->AddInt64(&parent_msg, field, value);
@@ -309,7 +310,7 @@ inline bool OnNodeForRepeated<uint64_t>(
 
     uint64_t value{0};
     for (auto citr = node.begin(); citr != node.end(); ++citr) {
-        if (!get(node, value)) {
+        if (!get(*citr, value)) {
             return false;
         }
         reflection->AddUInt64(&parent_msg, field, value);
@@ -371,7 +372,7 @@ inline bool OnNodeForRepeated<bool>(
 
     bool value{false};
     for (auto citr = node.begin(); citr != node.end(); ++citr) {
-        if (!get(node, value)) {
+        if (!get(*citr, value)) {
             return false;
         }
         reflection->AddBool(&parent_msg, field, value);
@@ -433,7 +434,7 @@ inline bool OnNodeForRepeated<float>(
 
     float value{0.};
     for (auto citr = node.begin(); citr != node.end(); ++citr) {
-        if (!get(node, value)) {
+        if (!get(*citr, value)) {
             return false;
         }
         reflection->AddFloat(&parent_msg, field, value);
@@ -495,7 +496,7 @@ inline bool OnNodeForRepeated<double>(
 
     double value{0.};
     for (auto citr = node.begin(); citr != node.end(); ++citr) {
-        if (!get(node, value)) {
+        if (!get(*citr, value)) {
             return false;
         }
         reflection->AddDouble(&parent_msg, field, value);
@@ -519,10 +520,153 @@ inline bool OnNodeFor<double>(
 }
 // End double
 
-class DummyMessage {};
+// Begin string
+template <>
+inline bool get<string>(const Node& node, string& value) {
+    try {
+        value = node.as<string>();
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
 
 template <>
-inline bool OnNodeFor<DummyMessage>(
+inline bool OnNodeForSingle<string>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    string value;
+    if (!get(node, value)) {
+        butil::StringAppendF(&err_msg, "Expect double value at:%s",
+                field->full_name().c_str());
+        return false;
+    }
+    const Reflection* reflection = parent_msg.GetReflection();
+    reflection->SetString(&parent_msg, field, value);
+    return true;
+}
+
+template <>
+inline bool OnNodeForRepeated<string>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    string value;
+    for (auto citr = node.begin(); citr != node.end(); ++citr) {
+        if (!get(*citr, value)) {
+            return false;
+        }
+        reflection->AddString(&parent_msg, field, value);
+    }
+    return true;
+}
+
+template <>
+inline bool OnNodeFor<string>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    if (field->is_repeated()) {
+        return OnNodeForRepeated<string>(node, field, parent_msg, err_msg);
+    } else {
+        return OnNodeForSingle<string>(node, field, parent_msg, err_msg);
+    }
+}
+// End string
+
+// Begin enum
+enum DummyEnum {};
+
+template <>
+inline bool OnNodeForSingle<enum DummyEnum>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const EnumValueDescriptor* enumd = nullptr;
+
+    int32_t value{0};
+    if (get<int32_t>(node, value)) {
+        enumd = field->enum_type()->FindValueByNumber(value);
+    }
+
+    std::string literal;
+    if (!enumd && get<std::string>(node, literal)) {
+        enumd = field->enum_type()->FindValueByName(literal);
+    }
+
+    if (!enumd) {
+        butil::StringAppendF(&err_msg, "Expect enum value at:%s",
+                field->full_name().c_str());
+        return false;
+    }
+
+    const Reflection* reflection = parent_msg.GetReflection();
+    reflection->SetEnum(&parent_msg, field, enumd);
+    return true;
+}
+
+template <>
+inline bool OnNodeForRepeated<enum DummyEnum>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    for (auto citr = node.begin(); citr != node.end(); ++citr) {
+        const EnumValueDescriptor* enumd = nullptr;
+
+        int32_t value{0};
+        if (get<int32_t>(*citr, value)) {
+            enumd = field->enum_type()->FindValueByNumber(value);
+        }
+
+        std::string literal;
+        if (!enumd && get<std::string>(*citr, literal)) {
+            enumd = field->enum_type()->FindValueByName(literal);
+        }
+
+        if (!enumd) {
+            butil::StringAppendF(&err_msg, "Expect enum value at:%s",
+                    field->full_name().c_str());
+            return false;
+        }
+
+        const Reflection* reflection = parent_msg.GetReflection();
+        reflection->AddEnum(&parent_msg, field, enumd);
+    }
+    return true;
+}
+
+template <>
+inline bool OnNodeFor<enum DummyEnum>(
+        const Node& node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    if (field->is_repeated()) {
+        return OnNodeForRepeated<enum DummyEnum>(node, field, parent_msg, err_msg);
+    } else {
+        return OnNodeForSingle<enum DummyEnum>(node, field, parent_msg, err_msg);
+    }
+}
+// End enum
+
+class DummyClass {};
+
+template <>
+inline bool OnNodeFor<DummyClass>(
         const Node& node,
         const FieldDescriptor* field,
         Message& parent_msg,
@@ -561,6 +705,12 @@ static bool OnNode(
     }
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_DOUBLE) {
         return OnNodeFor<double>(node, field, parent_msg, err_msg);
+    }
+    if (field->cpp_type() == FieldDescriptor::CPPTYPE_ENUM) {
+        return OnNodeFor<enum DummyEnum>(node, field, parent_msg, err_msg);
+    }
+    if (field->cpp_type() == FieldDescriptor::CPPTYPE_STRING) {
+        return OnNodeFor<string>(node, field, parent_msg, err_msg);
     }
 
     return false;

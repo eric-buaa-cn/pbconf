@@ -1,5 +1,10 @@
 package demo;
 
+enum Gender {
+    MAN = 1;
+    WOMEN = 2;
+}
+
 message ConfMessage {
     required int32 i32 = 1;
     required int64 i64 = 2;
@@ -9,4 +14,6 @@ message ConfMessage {
     required bool bfalse = 6;
     required float f = 7;
     required double d = 8;
+    required Gender g = 9 [default=WOMEN];
+    required string s = 10;
 }

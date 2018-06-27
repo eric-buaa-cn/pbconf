@@ -18,7 +18,9 @@ int main() {
     std::cout << "ui64=" << msg.ui64() << std::endl;
     std::cout << "btrue=" << msg.btrue() << std::endl;
     std::cout << "bfalse=" << msg.bfalse() << std::endl;
-    std::cout << "f=" << msg.f() << std::endl;
-    std::cout << "d=" << msg.d() << std::endl;
+    std::cout << "float=" << msg.f() << std::endl;
+    std::cout << "double=" << msg.d() << std::endl;
+    std::cout << "gender=" << demo::Gender_Name(msg.g()) << std::endl;
+    std::cout << "string=" << msg.s() << std::endl;
     return 0;
 }

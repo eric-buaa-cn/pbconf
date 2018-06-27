@@ -6,3 +6,5 @@ btrue: true
 bfalse: false
 f: 3.14
 d: 3.1415926
+g: MAN
+s: "Jack John's"

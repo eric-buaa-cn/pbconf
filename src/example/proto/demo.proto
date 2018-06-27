@@ -5,4 +5,6 @@ message ConfMessage {
     required int64 i64 = 2;
     required uint32 ui32 = 3;
     required uint64 ui64 = 4;
+    required bool btrue = 5;
+    required bool bfalse = 6;
 }

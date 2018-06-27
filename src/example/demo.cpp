@@ -16,5 +16,7 @@ int main() {
     std::cout << "ui32=" << msg.ui32() << std::endl;
     std::cout << "i64=" << msg.i64() << std::endl;
     std::cout << "ui64=" << msg.ui64() << std::endl;
+    std::cout << "btrue=" << msg.btrue() << std::endl;
+    std::cout << "bfalse=" << msg.bfalse() << std::endl;
     return 0;
 }

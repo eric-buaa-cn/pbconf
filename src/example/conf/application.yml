@@ -2,3 +2,5 @@ i32: 32
 ui32: 32
 i64: 64
 ui64: 64
+btrue: true
+bfalse: false

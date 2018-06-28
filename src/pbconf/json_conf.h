@@ -1,18 +1,11 @@
 #ifndef JSON_CONF_H
 #define JSON_CONF_H
 
+#include "hocon_conf.h"
+
 namespace pbconf {
 
-class JsonConf final {
-public:
-    bool Load(
-            const std::string& filename,
-            ::google::protobuf::Message& msg,
-            std::string& err_msg) {
-        err_msg = "Have no implementation yet";
-        return false;
-    }
-};
+using JsonConf = HoconConf;
 
 }
 

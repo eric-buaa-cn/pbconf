@@ -6,7 +6,7 @@
 int main() {
     demo::ConfMessage msg;
     pbconf::PbConf conf;
-    if (!conf.SetFilename("conf/application.hocon").Load(msg)) {
+    if (!conf.SetFilename("conf/application.json").Load(msg)) {
         std::cerr << "Fail load conf" << std::endl;
         std::cerr << conf.ErrorMessage() << std::endl;
         return -1;

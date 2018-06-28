@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 2.8.10)
-project(pbconf C CXX)
+project(pbconf CXX)
 
-set(BOOST_INCLUDE "/usr/local/Cellar/boost\@1.60/1.60.0/include/")
-set(BOOST_LIB "/usr/local/Cellar/boost\@1.60/1.60.0/lib/")
+#set(BOOST_INCLUDE "/usr/local/Cellar/boost\@1.60/1.60.0/")
+#set(BOOST_LIB "/usr/local/Cellar/boost\@1.60/1.60.0/")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${BOOST_INCLUDE}")
-SET(CMAKE_LDPATH "${CMAKE_LDPATH} -L${BOOST_LIB}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${BOOST_INCLUDE}")
+#SET(CMAKE_LDPATH "${CMAKE_LDPATH} -L${BOOST_LIB}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
 
 include(FindProtobuf)
@@ -28,6 +28,26 @@ find_library(HOCON_LIB NAMES libcpp-hocon.a cpp-hocon)
 if ((NOT HOCON_INCLUDE_PATH) OR (NOT HOCON_LIB))
     message(FATAL_ERROR "Fail to find hocon")
 endif()
+
+#set(LEATHERMAN_COMPONENTS locale catch nowide util)
+#find_package(Leatherman REQUIRED COMPONENTS ${LEATHERMAN_COMPONENTS})
+#
+#set(Boost_USE_STATIC_LIBS        ON) # only find static libs
+#set(Boost_USE_MULTITHREADED      ON)
+#set(Boost_USE_STATIC_RUNTIME    OFF)
+
+set(LEATHERMAN_COMPONENTS locale catch nowide util)
+find_package(Leatherman REQUIRED COMPONENTS ${LEATHERMAN_COMPONENTS})
+
+#set(CMAKE_LIBRARY_PATH "${CMAKE_LIBRARY_PATH} ${BOOST_LIB}")
+#set(CMAKE_INCLUDE_PATH "${CMAKE_INCLUDE_PATH} ${BOOST_INCLUDE}")
+#find_path(BOOST_INCLUDE_VERSION NAMES boost/version.hpp)
+#find_library(BOOST_TIMER_LIB NAMES libboost_timer.a boost_timer)
+#if ((NOT BOOST_INCLUDE_VERSION))
+#    message(FATAL_ERROR "Fail to find boost")
+#endif()
+
+find_package(Boost 1.54 COMPONENTS log locale thread date_time chrono system program_options)
 
 # Publish headers
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/pbconf/
@@ -77,12 +97,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output/bin)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/example/proto/")
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(demo ${SOURCES})
 target_link_libraries(demo pbconf)
 target_link_libraries(demo protobuf)
 target_link_libraries(demo brpc)
 target_link_libraries(demo yaml-cpp)
+target_link_libraries(demo iconv)
+target_link_libraries(demo ${LEATHERMAN_LIBRARIES})
+target_link_libraries(demo ${Boost_LIBRARIES})
+target_link_libraries(demo cpp-hocon)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/example/conf/
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/output/conf/

@@ -1,5 +1,6 @@
 #include "hocon_conf.h"
 
+#include <algorithm>
 #include <boost/exception/diagnostic_information.hpp> 
 #include <boost/lexical_cast.hpp>
 #include <butil/strings/stringprintf.h>
@@ -11,9 +12,10 @@
 #include <hocon/config_parse_options.hpp>
 #include <hocon/config_syntax.hpp>
 #include <hocon/config_value.hpp>
+#include <iostream>
 #include <limits>
 #include <memory>
-#include <iostream>
+#include <vector>
 //#include <internal/values/config_int.hpp>
 
 namespace pbconf {
@@ -352,6 +354,83 @@ inline bool OnNodeFor<uint64_t>(
 }
 // End uint64_t
 
+// Begin bool
+template <>
+inline bool get<bool>(shared_value node, bool& value) {
+    if (!node || node->value_type() != ::hocon::config_value::type::BOOLEAN) {
+        return false;
+    }
+
+    string literal = node->transform_to_string();
+    if (literal.compare("true") == 0) {
+        value = true;
+        return true;
+    }
+    if (literal.compare("false") == 0) {
+        value = false;
+        return true;
+    }
+
+    return false;
+}
+
+template <>
+inline bool OnNodeForSingle<bool>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    bool value{false};
+    if (!get(node, value)) {
+        butil::StringAppendF(&err_msg, "Expect boolean value at:%s",
+                field->full_name().c_str());
+        return false;
+    }
+    const Reflection* reflection = parent_msg.GetReflection();
+    reflection->SetBool(&parent_msg, field, value);
+    return true;
+}
+
+template <>
+inline bool OnNodeForRepeated<bool>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    if (!node || node->value_type() != ::hocon::config_value::type::LIST) {
+        butil::StringAppendF(&err_msg, "Wrong type");
+        return false;
+    }
+
+    auto real_node = std::static_pointer_cast<const ::hocon::config_list>(node);
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    bool value{false};
+    for (auto citr = real_node->begin(); citr != real_node->end(); ++citr) {
+        if (!get(*citr, value)) {
+            return false;
+        }
+        reflection->AddBool(&parent_msg, field, value);
+    }
+    return true;
+}
+
+template <>
+inline bool OnNodeFor<bool>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    if (field->is_repeated()) {
+        return OnNodeForRepeated<bool>(node, field, parent_msg, err_msg);
+    } else {
+        return OnNodeForSingle<bool>(node, field, parent_msg, err_msg);
+    }
+}
+// End bool
+
 static bool OnNode(
         shared_value node,
         const FieldDescriptor* field,
@@ -421,6 +500,9 @@ static bool OnNode(
     }
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_UINT64) {
         return OnNodeFor<uint64_t>(node, field, parent_msg, err_msg);
+    }
+    if (field->cpp_type() == FieldDescriptor::CPPTYPE_BOOL) {
+        return OnNodeFor<bool>(node, field, parent_msg, err_msg);
     }
     return true;
 }

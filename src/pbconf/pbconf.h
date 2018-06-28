@@ -11,8 +11,9 @@ public:
     // We can set the filename explicitly.
     // If not set(_filename is empty), the default filename will be used.
     // The default filename has the following order:
-    // application.yaml > application.json > application.hocon
-    // > application.properties
+    // application.yml(yaml format)
+    //     > application.json(json format)
+    //         > application.conf(hocon format)
     PbConf& SetFilename(const std::string& filename) {
         _filename = filename;
         return *this;

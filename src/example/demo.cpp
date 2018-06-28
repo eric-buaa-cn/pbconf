@@ -6,7 +6,10 @@
 int main() {
     demo::ConfMessage msg;
     pbconf::PbConf conf;
-    if (!conf.SetFilename("conf/application.json").Load(msg)) {
+    if (!conf.Load(msg)) { // for yaml
+    //if (!conf.SetFilename("conf/application.yml").Load(msg)) { // for yaml
+    //if (!conf.SetFilename("conf/application.json").Load(msg)) { // for json
+    //if (!conf.SetFilename("conf/application.conf").Load(msg)) { // for hocon
         std::cerr << "Fail load conf" << std::endl;
         std::cerr << conf.ErrorMessage() << std::endl;
         return -1;

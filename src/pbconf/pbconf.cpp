@@ -11,14 +11,12 @@
 #include "yaml_conf.h"
 #include "json_conf.h"
 #include "hocon_conf.h"
-#include "prop_conf.h"
 
 namespace pbconf {
 
 bool PbConf::Load(::google::protobuf::Message& msg) {
     std::vector<std::string> ordered_filenames = {
-        "conf/application.yml", "conf/application.json", "conf/application.hocon",
-        "conf/application.properties"
+        "conf/application.yml", "conf/application.json", "conf/application.conf"
     };
 
     auto file_exists = [](const std::string& filename) {
@@ -40,11 +38,8 @@ bool PbConf::Load(::google::protobuf::Message& msg) {
     if (EndsWith(_filename, ".json", true)) {
         return JsonConf().Load(_filename, msg, _error_msg);
     }
-    if (EndsWith(_filename, ".hocon", true)) {
+    if (EndsWith(_filename, ".conf", true)) {
         return HoconConf().Load(_filename, msg, _error_msg);
-    }
-    if (EndsWith(_filename, ".properties", true)) {
-        return PropertiesConf().Load(_filename, msg, _error_msg);
     }
 
     return false;

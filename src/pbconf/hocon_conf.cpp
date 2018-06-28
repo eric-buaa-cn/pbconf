@@ -30,6 +30,8 @@ using string = std::string;
 using shared_object = ::hocon::shared_object;
 using shared_value = ::hocon::shared_value;
 
+static bool OnMap(shared_object node, Message& msg, string& err_msg);
+
 static bool IsMap(shared_value node) {
     return node->value_type() == ::hocon::config_value::type::OBJECT;
 }
@@ -732,6 +734,60 @@ inline bool OnNodeFor<string>(
 }
 // End string
 
+// Begin message
+class DummyClass {};
+
+template <>
+inline bool OnNodeForSingle<DummyClass>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    Message& child_msg = *(reflection->MutableMessage(&parent_msg, field));
+    auto real_node = std::static_pointer_cast<const ::hocon::config_object>(node);
+    return OnMap(real_node, child_msg, err_msg);
+}
+
+template <>
+inline bool OnNodeForRepeated<DummyClass>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    if (!node || node->value_type() != ::hocon::config_value::type::LIST) {
+        butil::StringAppendF(&err_msg, "Wrong type");
+        return false;
+    }
+
+    auto real_node = std::static_pointer_cast<const ::hocon::config_list>(node);
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    for (auto citr = real_node->begin(); citr != real_node->end(); ++citr) {
+        Message& child_msg = *(reflection->AddMessage(&parent_msg, field));
+        auto sub_node = std::static_pointer_cast<const ::hocon::config_object>(*citr);
+        if (!OnMap(sub_node, child_msg, err_msg)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <>
+inline bool OnNodeFor<DummyClass>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    if (field->is_repeated()) {
+        return OnNodeForRepeated<DummyClass>(node, field, parent_msg, err_msg);
+    } else {
+        return OnNodeForSingle<DummyClass>(node, field, parent_msg, err_msg);
+    }
+}
+// End message
+
 static bool OnNode(
         shared_value node,
         const FieldDescriptor* field,
@@ -817,6 +873,10 @@ static bool OnNode(
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_STRING) {
         return OnNodeFor<string>(node, field, parent_msg, err_msg);
     }
+    if (field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
+        return OnNodeFor<DummyClass>(node, field, parent_msg, err_msg);
+    }
+
     return true;
 }
 

@@ -6,7 +6,7 @@
 int main() {
     demo::ConfMessage msg;
     pbconf::PbConf conf;
-    if (!conf.SetFilename("conf/application.yml").Load(msg)) {
+    if (!conf.SetFilename("conf/application.hocon").Load(msg)) {
         std::cerr << "Fail load conf" << std::endl;
         std::cerr << conf.ErrorMessage() << std::endl;
         return -1;
@@ -73,7 +73,7 @@ int main() {
 
     std::cout << "genders:";
     for (int i = 0; i < msg.gs_size(); ++i) {
-        std::cout << " " << msg.gs(i);
+        std::cout << " " << demo::Gender_Name(msg.gs(i));
     }
     std::cout << std::endl;
 

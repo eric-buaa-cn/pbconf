@@ -577,6 +577,94 @@ inline bool OnNodeFor<double>(
 }
 // End double
 
+// Begin enum
+enum DummyEnum {};
+
+template <>
+inline bool get<string>(shared_value node, string& value);
+
+template <>
+inline bool OnNodeForSingle<enum DummyEnum>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const EnumValueDescriptor* enumd = nullptr;
+
+    int32_t value{0};
+    if (get<int32_t>(node, value)) {
+        enumd = field->enum_type()->FindValueByNumber(value);
+    }
+
+    std::string literal;
+    if (!enumd && get<std::string>(node, literal)) {
+        enumd = field->enum_type()->FindValueByName(literal);
+    }
+
+    if (!enumd) {
+        butil::StringAppendF(&err_msg, "Expect enum value at:%s",
+                field->full_name().c_str());
+        return false;
+    }
+
+    const Reflection* reflection = parent_msg.GetReflection();
+    reflection->SetEnum(&parent_msg, field, enumd);
+    return true;
+}
+
+template <>
+inline bool OnNodeForRepeated<enum DummyEnum>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    if (!node || node->value_type() != ::hocon::config_value::type::LIST) {
+        butil::StringAppendF(&err_msg, "Wrong type");
+        return false;
+    }
+
+    auto real_node = std::static_pointer_cast<const ::hocon::config_list>(node);
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    for (auto citr = real_node->begin(); citr != real_node->end(); ++citr) {
+        const EnumValueDescriptor* enumd = nullptr;
+
+        int32_t value{0};
+        if (get<int32_t>(*citr, value)) {
+            enumd = field->enum_type()->FindValueByNumber(value);
+        }
+
+        std::string literal;
+        if (!enumd && get<std::string>(*citr, literal)) {
+            enumd = field->enum_type()->FindValueByName(literal);
+        }
+
+        if (!enumd) {
+            butil::StringAppendF(&err_msg, "Expect enum value at:%s",
+                    field->full_name().c_str());
+            return false;
+        }
+
+        const Reflection* reflection = parent_msg.GetReflection();
+        reflection->AddEnum(&parent_msg, field, enumd);
+    }
+    return true;
+}
+
+template <>
+inline bool OnNodeFor<enum DummyEnum>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    if (field->is_repeated()) {
+        return OnNodeForRepeated<enum DummyEnum>(node, field, parent_msg, err_msg);
+    } else {
+        return OnNodeForSingle<enum DummyEnum>(node, field, parent_msg, err_msg);
+    }
+}
+// End enum
+
 // Begin string
 template <>
 inline bool get<string>(shared_value node, string& value) {
@@ -722,6 +810,9 @@ static bool OnNode(
     }
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_DOUBLE) {
         return OnNodeFor<double>(node, field, parent_msg, err_msg);
+    }
+    if (field->cpp_type() == FieldDescriptor::CPPTYPE_ENUM) {
+        return OnNodeFor<enum DummyEnum>(node, field, parent_msg, err_msg);
     }
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_STRING) {
         return OnNodeFor<string>(node, field, parent_msg, err_msg);

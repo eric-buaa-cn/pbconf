@@ -577,6 +577,73 @@ inline bool OnNodeFor<double>(
 }
 // End double
 
+// Begin string
+template <>
+inline bool get<string>(shared_value node, string& value) {
+    if (!node || node->value_type() != ::hocon::config_value::type::STRING) {
+        return false;
+    }
+    value = node->transform_to_string();
+    return true;
+}
+
+template <>
+inline bool OnNodeForSingle<string>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    string value;
+    if (!get(node, value)) {
+        butil::StringAppendF(&err_msg, "Expect double value at:%s",
+                field->full_name().c_str());
+        return false;
+    }
+    const Reflection* reflection = parent_msg.GetReflection();
+    reflection->SetString(&parent_msg, field, value);
+    return true;
+}
+
+template <>
+inline bool OnNodeForRepeated<string>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    if (!node || node->value_type() != ::hocon::config_value::type::LIST) {
+        butil::StringAppendF(&err_msg, "Wrong type");
+        return false;
+    }
+
+    auto real_node = std::static_pointer_cast<const ::hocon::config_list>(node);
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    string value;
+    for (auto citr = real_node->begin(); citr != real_node->end(); ++citr) {
+        if (!get(*citr, value)) {
+            return false;
+        }
+        reflection->AddString(&parent_msg, field, value);
+    }
+    return true;
+}
+
+template <>
+inline bool OnNodeFor<string>(
+        shared_value node,
+        const FieldDescriptor* field,
+        Message& parent_msg,
+        string& err_msg) {
+    const Reflection* reflection = parent_msg.GetReflection();
+
+    if (field->is_repeated()) {
+        return OnNodeForRepeated<string>(node, field, parent_msg, err_msg);
+    } else {
+        return OnNodeForSingle<string>(node, field, parent_msg, err_msg);
+    }
+}
+// End string
+
 static bool OnNode(
         shared_value node,
         const FieldDescriptor* field,
@@ -655,6 +722,9 @@ static bool OnNode(
     }
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_DOUBLE) {
         return OnNodeFor<double>(node, field, parent_msg, err_msg);
+    }
+    if (field->cpp_type() == FieldDescriptor::CPPTYPE_STRING) {
+        return OnNodeFor<string>(node, field, parent_msg, err_msg);
     }
     return true;
 }

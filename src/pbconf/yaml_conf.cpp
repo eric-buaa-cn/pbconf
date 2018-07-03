@@ -46,13 +46,13 @@ static bool OnMap(const Node& node, Message& msg, string& err_msg) {
         }
     }
 
-	// Convert each sub-node.
+    // Convert each sub-node.
     for (auto field : fields) {
         auto& field_node = node[field->name()];
         if (!OnNode(field_node, field, msg, err_msg)) {
             return false;
         }
-	}
+    }
 
     return true;
 }
